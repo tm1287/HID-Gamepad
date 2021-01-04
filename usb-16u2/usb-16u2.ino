@@ -29,6 +29,11 @@ void loop() {
     Serial.print(F("16u2: "));
     Serial.print(buttonState);
     Serial.print('\n');
+   if (buttonState == 'H') {
+    Gamepad.press(2);
+   } else {
+    Gamepad.release(2);
+   }
 }
   //Send the HID report to the OS.
   Gamepad.write();
