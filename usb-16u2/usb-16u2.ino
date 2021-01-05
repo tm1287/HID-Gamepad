@@ -1,5 +1,5 @@
 #include "HID-Project.h"
-
+#include <iostate.h>
 int buttonState = 0;
 /**
  * This sketch is meant to be flashed onto the 16u2 chip of the modified UNO.
@@ -11,10 +11,12 @@ int buttonState = 0;
  * 
  * - Tejas Maraliga 1/4/21
  */
+ioState* currStatePtr;
 
 void setup() {
+  
   Serial1.begin(115200);
-
+  
   // Send the HID descriptor
   Gamepad.begin();
   
@@ -23,18 +25,20 @@ void setup() {
 
 void loop() {
   // Get the button state from the I/O MCU.
-  char buttonState = Serial1.read();
+  byte recvArr[sizeof(ioState)];
+  Serial1.readBytes(recvArr, sizeof(ioState));
 
-  if (buttonState >= 'A' && buttonState <= 'Z') {
-    Serial.print(F("16u2: "));
-    Serial.print(buttonState);
-    Serial.print('\n');
-   if (buttonState == 'H') {
-    Gamepad.press(2);
-   } else {
-    Gamepad.release(2);
-   }
-}
+  currStatePtr = (ioState*) recvArr;
+  Serial.println(currStatePtr->buttonOneState, HEX);
+  if(currStatePtr->buttonOneState == 0xFF){
+    Gamepad.press(b_ONE_MAP);
+  } else {
+    Gamepad.release(b_ONE_MAP); 
+  }
+
+  Gamepad.xAxis(currStatePtr->joystickXState);
+  Gamepad.yAxis(currStatePtr->joystickYState);
+
   //Send the HID report to the OS.
   Gamepad.write();
 }
